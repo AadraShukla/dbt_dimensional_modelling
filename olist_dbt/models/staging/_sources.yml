@@ -1,0 +1,20 @@
+version: 2
+
+# Raw layer: the 9 Olist source files land in data/raw/ as CSVs.
+# dbt-duckdb reads them in place via read_csv_auto -- this is the "landing zone"
+# of a real warehouse, mapped to dbt sources so lineage starts at raw.
+sources:
+  - name: raw
+    description: "Raw Olist e-commerce CSV extracts (landing zone)."
+    meta:
+      external_location: "read_csv_auto('../data/raw/{name}.csv', header=true, all_varchar=true)"
+    tables:
+      - name: olist_customers_dataset
+      - name: olist_orders_dataset
+      - name: olist_order_items_dataset
+      - name: olist_order_payments_dataset
+      - name: olist_order_reviews_dataset
+      - name: olist_products_dataset
+      - name: olist_sellers_dataset
+      - name: olist_geolocation_dataset
+      - name: product_category_name_translation

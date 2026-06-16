@@ -1,0 +1,11 @@
+# Core warehouse stack -- all free, all local, no accounts required.
+# Recommended Python: 3.11 or 3.12 (dbt-core does not yet support 3.14).
+dbt-core==1.11.11
+dbt-duckdb==1.10.1
+duckdb>=1.1
+# Dashboard
+streamlit>=1.36
+pandas>=2.0
+# Airflow is optional and only needed to run the orchestration DAG.
+# Install separately in a Linux/WSL/Docker environment, e.g.:
+#   pip install "apache-airflow==2.10.4"

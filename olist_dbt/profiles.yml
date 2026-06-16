@@ -1,0 +1,12 @@
+# dbt-duckdb profile. DuckDB is in-process and file-based -> no server, no account.
+# The database file is created on first `dbt run` at the path below (relative to
+# this dbt project directory).
+olist_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "../data/olist.duckdb"
+      threads: 4
+      extensions:
+        - parquet

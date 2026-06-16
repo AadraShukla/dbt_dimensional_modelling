@@ -1,0 +1,86 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Cleaned customers, one row per order-level customer key."
+    columns:
+      - name: customer_id
+        description: "Order-scoped customer key (PK of this table)."
+        data_tests: [not_null, unique]
+      - name: customer_unique_id
+        description: "Stable identifier for a real-world customer across orders."
+        data_tests: [not_null]
+      - name: customer_state
+        data_tests: [not_null]
+
+  - name: stg_orders
+    description: "Cleaned orders with typed timestamps."
+    columns:
+      - name: order_id
+        data_tests: [not_null, unique]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: order_status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [delivered, shipped, canceled, processing, invoiced, unavailable, created, approved]
+
+  - name: stg_order_items
+    description: "One row per item within an order (order_id + order_item_id grain)."
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+      - name: product_id
+        data_tests: [not_null]
+      - name: seller_id
+        data_tests: [not_null]
+      - name: price
+        data_tests: [not_null]
+
+  - name: stg_order_payments
+    description: "Payment records, one row per payment_sequential within an order."
+    columns:
+      - name: order_id
+        data_tests: [not_null]
+      - name: payment_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [credit_card, boleto, voucher, debit_card, not_defined]
+
+  - name: stg_order_reviews
+    description: "Customer reviews tied to an order."
+    columns:
+      - name: review_id
+        data_tests: [not_null]
+      - name: review_score
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+
+  - name: stg_products
+    description: "Products with English category translation joined in."
+    columns:
+      - name: product_id
+        data_tests: [not_null, unique]
+
+  - name: stg_sellers
+    description: "Marketplace sellers."
+    columns:
+      - name: seller_id
+        data_tests: [not_null, unique]

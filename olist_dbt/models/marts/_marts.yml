@@ -1,0 +1,101 @@
+version: 2
+
+models:
+  - name: dim_customer
+    description: "Customer dimension (conformed). Grain: one row per customer_id."
+    columns:
+      - name: customer_sk
+        description: "Surrogate key."
+        data_tests: [not_null, unique]
+      - name: customer_id
+        data_tests: [not_null, unique]
+      - name: customer_state
+        data_tests: [not_null]
+
+  - name: dim_product
+    description: "Product dimension (conformed). Grain: one row per product_id."
+    columns:
+      - name: product_sk
+        data_tests: [not_null, unique]
+      - name: product_id
+        data_tests: [not_null, unique]
+      - name: product_category_name_english
+        data_tests: [not_null]
+
+  - name: dim_seller
+    description: "Seller dimension (conformed). Grain: one row per seller_id."
+    columns:
+      - name: seller_sk
+        data_tests: [not_null, unique]
+      - name: seller_id
+        data_tests: [not_null, unique]
+
+  - name: dim_date
+    description: "Conformed calendar dimension, one row per day."
+    columns:
+      - name: date_sk
+        data_tests: [not_null, unique]
+      - name: date_day
+        data_tests: [not_null, unique]
+
+  - name: fact_orders
+    description: "Order-grain fact. One row per order with order-level measures."
+    columns:
+      - name: order_sk
+        data_tests: [not_null, unique]
+      - name: order_id
+        data_tests: [not_null, unique]
+      - name: customer_sk
+        description: "FK to dim_customer."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_sk
+      - name: order_date_sk
+        description: "FK to dim_date."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_sk
+      - name: total_order_value
+        data_tests: [not_null]
+
+  - name: fact_order_items
+    description: "Line-item-grain fact. One row per order line item."
+    columns:
+      - name: order_item_sk
+        data_tests: [not_null, unique]
+      - name: customer_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_sk
+      - name: product_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_sk
+      - name: seller_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_seller')
+                field: seller_sk
+      - name: order_date_sk
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_sk
+      - name: price
+        data_tests: [not_null]

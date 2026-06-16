@@ -1,0 +1,4 @@
+# No external dbt packages are required -- the surrogate-key macro is
+# implemented locally in macros/ so the project builds fully offline.
+# (dbt_utils could be added here later; left empty intentionally.)
+packages: []

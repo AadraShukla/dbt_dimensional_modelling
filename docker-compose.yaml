@@ -1,0 +1,55 @@
+# Optional: run the Airflow orchestration layer in Docker (Airflow has no
+# native Windows support). The dbt warehouse itself runs without this file.
+#
+#   docker compose up        # starts Airflow at http://localhost:8080
+#
+# The repo is mounted at /opt/airflow/olist so the DAG can call the scripts
+# and the dbt project. A Python venv with dbt-duckdb is created on first boot.
+---
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.10.4-python3.12
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    OLIST_PROJECT_DIR: /opt/airflow/olist
+    _PIP_ADDITIONAL_REQUIREMENTS: "dbt-duckdb==1.10.1"
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./:/opt/airflow/olist
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+
+  airflow-init:
+    <<: *airflow-common
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create --username admin --password admin
+               --firstname a --lastname d --role Admin --email admin@example.com"
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      - airflow-init
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on:
+      - airflow-init
