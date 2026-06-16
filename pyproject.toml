@@ -1,0 +1,11 @@
+[project]
+name = "olist-dbt-warehouse"
+version = "0.1.0"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "dbt-core==1.11.11",
+    "dbt-duckdb==1.10.1",
+    "duckdb>=1.1",
+    "streamlit>=1.36",
+    "pandas>=2.0",
+]

@@ -53,26 +53,36 @@ slice both order-level and line-level measures by the same customer / date.
 
 ## Quick start (Windows, no accounts)
 
-> Requires **Python 3.11 or 3.12** (dbt does not yet support 3.14). If you only
-> have 3.14, install 3.12 with [`uv`](https://github.com/astral-sh/uv):
-> `pip install uv && uv python install 3.12`.
+### One-command launch — `start.bat`
+
+Double-click **`start.bat`** or run it from any terminal:
 
 ```powershell
-# 1. create the environment
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-
-# 2. build everything in one shot (generate data → run → test → docs)
-powershell -ExecutionPolicy Bypass -File build_all.ps1
-
-# 3. open the dashboard
-streamlit run dashboard\streamlit_app.py
+.\start.bat
 ```
+
+**First run** — fully automatic setup (takes a few minutes):
+1. Installs [`uv`](https://github.com/astral-sh/uv) globally if not already present
+2. `uv sync` — downloads Python 3.12, creates `.venv`, installs all dependencies
+3. Generates synthetic Olist CSV data
+4. Runs dbt (staging views → mart tables → 64 data-quality tests → docs)
+5. Launches the Streamlit dashboard
+
+**Subsequent runs** — detects the existing environment and goes straight to the dashboard.
+
+> **Note on Python version:** dbt does not yet support Python 3.14. `uv sync`
+> reads `pyproject.toml` (`requires-python = ">=3.11,<3.14"`) and downloads
+> Python 3.12 automatically — no manual install needed.
 
 ### Manual steps (any OS)
 
 ```bash
+# Install uv (once)
+# Windows:  irm https://astral.sh/uv/install.ps1 | iex
+# Mac/Linux: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+uv sync                                        # creates .venv + installs deps
+
 python scripts/generate_olist_data.py          # create data/raw/*.csv
 
 cd olist_dbt
@@ -157,5 +167,7 @@ olist_dbt/
 airflow/dags/olist_dbt_dag.py     # orchestration DAG
 dashboard/streamlit_app.py        # BI dashboard on the marts
 docker-compose.yaml               # optional Airflow stack
-build_all.ps1                     # one-command Windows build
+pyproject.toml                    # uv project manifest (deps + python version)
+build_all.ps1                     # called by start.bat to run dbt pipeline
+start.bat                         # one-click launcher: setup on first run, dashboard on repeat
 ```
